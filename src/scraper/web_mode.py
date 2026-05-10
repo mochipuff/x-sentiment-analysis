@@ -4,7 +4,7 @@ import logging
 from typing import Optional
 
 from playwright.async_api import async_playwright, Page
-from playwright_stealth import stealth_async
+from playwright_stealth.async_api import stealth
 from src.utils.config import TWEET_SELECTOR, TEXT_SELECTOR
 
 logger = logging.getLogger(__name__)
@@ -67,15 +67,34 @@ async def _scroll_and_collect(
     return results
 
 class XWebScraper:
+    """
+    Scrape tweets from X.com using Playwright browser automation.
     
+    Uses playwright-stealth to bypass anti-bot detection.
+    """
+
     USER_AGENT = (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "Mozilla/5.0 (X11; Linux x86_64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/122.0.0.0 Safari/537.36"
     )
 
     async def scrape_no_api(self, query: str, limit: int = 10) -> list[dict]:
+        """
+        Scrape tweets from X.com using browser automation (no API required).
         
+        Parameters
+        ----------
+        query : str
+            Search keyword or phrase
+        limit : int
+            Maximum number of tweets to collect
+            
+        Returns
+        -------
+        list[dict]
+            List of tweet records with tweet_id, raw_text, and timestamp
+        """
         results: list[dict] = []
 
         async with async_playwright() as p:
@@ -86,7 +105,7 @@ class XWebScraper:
                 timezone_id="Asia/Jakarta",
             )
             page = await context.new_page()
-            await stealth_async(page)
+            await stealth(page)
 
             url = f"https://x.com/search?q={query}&src=typed_query&f=live"
             logger.info("Navigating to: %s", url)
