@@ -1,4 +1,4 @@
-playwright
+playwright-headless
 playwright-stealth
 tweepy
 pandas
