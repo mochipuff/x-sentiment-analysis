@@ -27,6 +27,19 @@ logger = logging.getLogger(__name__)
 # ────────
 
 async def run_project(mode: str, query: str, limit: int) -> None:
+    """
+    Run the sentiment analysis pipeline.
+    
+    Parameters
+    ----------
+    mode : str
+        Either 'api' (X API) or 'web' (browser scraping). 
+        When 'api' is set, web scraping is disabled.
+    query : str
+        Search keyword or phrase
+    limit : int
+        Maximum number of tweets to collect
+    """
     ensure_dir("data/raw")
     ensure_dir("data/processed")
 
@@ -45,9 +58,12 @@ async def run_project(mode: str, query: str, limit: int) -> None:
             logger.error("API scraper failed to initialise: %s", exc)
             logger.error("Tip: add X_BEARER_TOKEN to your .env file, then retry.")
             sys.exit(1)
-    else:
+    elif mode == "web":
         scraper_web = XWebScraper()
         raw_data = await scraper_web.scrape_no_api(query, limit)
+    else:
+        logger.error("Invalid mode: %s. Choose 'api' or 'web'.", mode)
+        sys.exit(1)
 
     if not raw_data:
         logger.warning("No tweets collected. Nothing to process.")
@@ -109,7 +125,7 @@ def parse_args() -> argparse.Namespace:
         "--mode",
         choices=["api", "web"],
         default="web",
-        help="'api' uses the X API (needs BEARER_TOKEN), 'web' uses browser scraping.",
+        help="'api' uses the X API (needs X_BEARER_TOKEN), 'web' uses browser scraping (mutually exclusive).",
     )
     parser.add_argument(
         "--query",
